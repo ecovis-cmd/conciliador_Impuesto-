@@ -48,6 +48,22 @@ if archivos:
         lista_df.append(df)
     
     df_total = pd.concat(lista_df, ignore_index=True)
+    # Aquí se unen todos tus Excel en una sola tabla virtual llamada df_total
+    df_total = pd.concat(lista_df, ignore_index=True)
+
+    # --- AQUÍ ES DONDE UBICAS Y ORDENAS EL DF_TOTAL ---
+    columnas_ordenadas = [
+        'origen', 'Fuente', 'Asiento', 'Referencia', 
+        'Cuenta Conta', 'Fecha', 'Nit', 'Débito VES', 'Crédito VES'
+    ]
+
+    # Reorganizamos para que se vea como tu imagen
+    columnas_presentes = [col for col in columnas_ordenadas if col in df_total.columns]
+    df_total = df_total[columnas_presentes]
+    # -------------------------------------------------
+
+    st.write("### Vista previa del reporte ordenado:")
+    st.dataframe(df_total, use_container_width=True)
 
     # Lógica de limpieza que ya tenías
     if 'Fecha' in df_total.columns:
@@ -86,4 +102,5 @@ if archivos:
             help="Haz clic para bajar el archivo procesado"
         )
         st.balloons()
+
 
