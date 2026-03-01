@@ -1,3 +1,4 @@
+import streamlit as st
 # Selección de Empresa en la barra lateral
 with st.sidebar:
     st.header("🏢 Selección de Empresa")
@@ -13,3 +14,4 @@ with st.sidebar:
         st.info("📂 Departamento de Impuestos - Beval")
     elif empresa == "Sillaca":
         st.info("📂 Departamento de Impuestos - Sillaca")
+
