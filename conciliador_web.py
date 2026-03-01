@@ -1,65 +1,46 @@
 import streamlit as st
-import pandas as pd
 
-# Configuración inicial
+# 1. Configuración de la página y Logo Principal
 st.set_page_config(page_title="Centro de Impuestos", layout="wide")
+
+# Puedes colocar un logo general aquí
+# st.image("URL_DE_TU_LOGO_PRINCIPAL") 
+
 st.title("🏦 Centro de Conciliación de Impuestos")
 
-# --- BARRA LATERAL ---
+# 2. Selección de Empresa en la barra lateral
 with st.sidebar:
     st.header("🏢 Selección de Empresa")
-    empresa = st.selectbox("Seleccione el cliente:", ["Febeca", "Beval", "Sillaca"])
-    st.info(f"Trabajando con: {empresa}")
-
-# --- SECCIÓN DE INSTRUCCIONES (Expander) ---
-with st.expander("📢 MANUAL PARA EL PERSONAL (Haz clic aquí)"):
-    st.markdown(f"""
-    ### Pasos para {empresa}:
-    1. **Descarga:** Bajar el 'Libro de Compras' y el 'Resumen de Retenciones' en **.xlsx**.
-    2. **No editar:** El sistema busca columnas específicas. No cambies nombres ni orden.
-    3. **Subida:** Ve a la pestaña **Retenciones** y carga ambos archivos.
-    4. **Resultado:** Si hay diferencias, aparecerán resaltadas en rojo.
-    """)
-
-# --- PESTAÑAS ---
-tab1, tab2 = st.tabs(["📊 IVA", "📝 Retenciones"])
-
-with tab2:
-    st.subheader(f"Cruce de Retenciones - {empresa}")
+    empresa = st.selectbox(
+        "Seleccione el cliente:",
+        ["Empresa A, C.A.", "Corporación B", "Servicios C, S.A."]
+    )
     
+    # Mostrar logo según la empresa elegida
+    if empresa == "Empresa A, C.A.":
+        st.info("📂 Departamento de Impuestos - Empresa A")
+        # st.image("URL_LOGO_A")
+    elif empresa == "Corporación B":
+        st.info("📂 Departamento de Impuestos - Corp B")
+
+st.divider()
+
+# 3. Crear pestañas para diferentes tipos de conciliaciones
+# Esto te permite tener múltiples "Browse Files" organizados
+tab1, tab2, tab3 = st.tabs(["📊 IVA", "💰 ISLR", "📝 Retenciones"])
+
+with tab1:
+    st.subheader(f"Conciliación de IVA - {empresa}")
     col1, col2 = st.columns(2)
     with col1:
-        file_libro = st.file_uploader("1. Subir Libro de Compras", type=["xlsx"], key="l_compras")
+        file_ventas = st.file_uploader("Subir Libro de Ventas", type=["xlsx"], key="iva_v")
     with col2:
-        file_fiscal = st.file_uploader("2. Subir Resumen Fiscal (SENIAT)", type=["xlsx"], key="r_fiscal")
+        file_fiscal = st.file_uploader("Subir Resumen Fiscal", type=["xlsx"], key="iva_f")
 
-    # --- LÓGICA DE CONCILIACIÓN ---
-    if file_libro and file_fiscal:
-        try:
-            # Leer los archivos
-            df_libro = pd.read_excel(file_libro)
-            df_fiscal = pd.read_excel(file_fiscal)
+with tab2:
+    st.subheader(f"Conciliación de ISLR - {empresa}")
+    file_islr = st.file_uploader("Subir Estado de Resultados", type=["xlsx"], key="islr")
 
-            st.success("¡Archivos cargados! Comparando montos...")
-
-            # Ejemplo de lógica: Supongamos que ambos tienen una columna 'Rif' y 'Monto'
-            # Aquí el programa busca diferencias
-            total_libro = df_libro['Monto'].sum() if 'Monto' in df_libro.columns else 0
-            total_fiscal = df_fiscal['Monto'].sum() if 'Monto' in df_fiscal.columns else 0
-            diferencia = total_libro - total_fiscal
-
-            # Mostrar resultados
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Total Libro", f"{total_libro:,.2f}")
-            c2.metric("Total Fiscal", f"{total_fiscal:,.2f}")
-            c3.metric("Diferencia", f"{diferencia:,.2f}", delta=-diferencia)
-
-            if diferencia == 0:
-                st.balloons()
-                st.success("✅ ¡Todo coincide perfectamente!")
-            else:
-                st.error("⚠️ Se detectaron diferencias entre los reportes.")
-        
-        except Exception as e:
-            st.warning("Asegúrate de que los Excel tengan una columna llamada 'Monto'.")
-
+with tab3:
+    st.subheader(f"Cruce de Retenciones - {empresa}")
+    file_ret = st.file_uploader("Subir Comprobantes de Retención", type=["xlsx"], key="ret")
