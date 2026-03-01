@@ -26,4 +26,5 @@ elif opcion == "Cuentas por Cobrar":
     st.subheader("💳 Clientes vs Facturación")
 
 # 3. El cargador de archivos se mantiene para todos
-uploaded_files = st.file_upload("Arrastra aquí tus archivos Excel para " + opcion, type=["xlsx"])
+uploaded_files = st.file_uploader("Arrastra aquí tus archivos Excel para " + opcion, type=["xlsx"])
+
