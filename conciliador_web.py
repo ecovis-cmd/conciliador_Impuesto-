@@ -1,46 +1,41 @@
 import streamlit as st
+import pandas as pd
+from io import BytesIO
 
-# 1. Configuración de la página y Logo Principal
-st.set_page_config(page_title="Centro de Impuestos", layout="wide")
+st.set_page_config(page_title="Conciliador Pro", layout="wide")
+st.title("📊 Mi Conciliador Automático")
 
-# Puedes colocar un logo general aquí
-# st.image("URL_DE_TU_LOGO_PRINCIPAL") 
+archivos = st.file_uploader("Arrastra aquí tus archivos Excel", type="xlsx", accept_multiple_files=True)
 
-st.title("🏦 Centro de Conciliación de Impuestos")
-
-# 2. Selección de Empresa en la barra lateral
-with st.sidebar:
-    st.header("🏢 Selección de Empresa")
-    empresa = st.selectbox(
-        "Seleccione el cliente:",
-        ["Empresa A, C.A.", "Corporación B", "Servicios C, S.A."]
-    )
+if archivos:
+    lista_df = []
+    for archivo in archivos:
+        df = pd.read_excel(archivo)
+        df['origen'] = archivo.name
+        lista_df.append(df)
     
-    # Mostrar logo según la empresa elegida
-    if empresa == "Empresa A, C.A.":
-        st.info("📂 Departamento de Impuestos - Empresa A")
-        # st.image("URL_LOGO_A")
-    elif empresa == "Corporación B":
-        st.info("📂 Departamento de Impuestos - Corp B")
+    df_total = pd.concat(lista_df, ignore_index=True)
 
-st.divider()
+    # Formato de Fecha y Diferencia Positiva
+    if 'Fecha' in df_total.columns:
+        df_total['Fecha'] = pd.to_datetime(df_total['Fecha'], errors='coerce').dt.strftime('%d/%m/%Y')
+    
+    if 'Débito VES' in df_total.columns and 'Crédito VES' in df_total.columns:
+        df_total['Débito VES'] = df_total['Débito VES'].fillna(0)
+        df_total['Crédito VES'] = df_total['Crédito VES'].fillna(0)
+        df_total['Diferencia_Neta'] = (df_total['Débito VES'] - df_total['Crédito VES']).abs()
 
-# 3. Crear pestañas para diferentes tipos de conciliaciones
-# Esto te permite tener múltiples "Browse Files" organizados
-tab1, tab2, tab3 = st.tabs(["📊 IVA", "💰 ISLR", "📝 Retenciones"])
+    st.write("### Vista previa:")
+    st.dataframe(df_total)
 
-with tab1:
-    st.subheader(f"Conciliación de IVA - {empresa}")
-    col1, col2 = st.columns(2)
-    with col1:
-        file_ventas = st.file_uploader("Subir Libro de Ventas", type=["xlsx"], key="iva_v")
-    with col2:
-        file_fiscal = st.file_uploader("Subir Resumen Fiscal", type=["xlsx"], key="iva_f")
-
-with tab2:
-    st.subheader(f"Conciliación de ISLR - {empresa}")
-    file_islr = st.file_uploader("Subir Estado de Resultados", type=["xlsx"], key="islr")
-
-with tab3:
-    st.subheader(f"Cruce de Retenciones - {empresa}")
-    file_ret = st.file_uploader("Subir Comprobantes de Retención", type=["xlsx"], key="ret")
+    # DESCARGA EN EXCEL REAL (No una sola columna)
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        df_total.to_excel(writer, index=False, sheet_name='Resultado')
+    
+    st.download_button(
+        label="📥 Descargar Excel Profesional",
+        data=buffer.getvalue(),
+        file_name="conciliacion_final.xlsx",
+        mime="application/vnd.ms-excel"
+    )
